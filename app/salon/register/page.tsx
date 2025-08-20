@@ -1,8 +1,11 @@
 import { SalonRegistrationFlow } from "@/components/salon/salon-registration-flow"
+import { Header } from "@/components/header"
 
 export default function SalonRegisterPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50">
+      <Header />
+
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
