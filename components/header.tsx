@@ -1,101 +1,131 @@
-"use client"
-
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { User, Menu, ArrowLeft } from "lucide-react"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Phone, MapPin, Clock, User, LogOut } from "lucide-react"
+import { createClient } from "@/lib/supabase/server"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { signOut } from "@/lib/actions"
 
-interface HeaderProps {
-  showBackButton?: boolean
-}
+export async function Header() {
+  const supabase = createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-export function Header({ showBackButton = false }: HeaderProps) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const router = useRouter()
+  // Get customer data if user is logged in
+  let customer = null
+  if (user) {
+    const { data } = await supabase.from("customers").select("full_name").eq("id", user.id).single()
+    customer = data
+  }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
-          {/* Logo with optional back button */}
-          <div className="flex items-center space-x-3">
-            {showBackButton && (
-              <Button variant="ghost" size="sm" onClick={() => router.back()}>
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            )}
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">B</span>
+    <header className="bg-white shadow-sm border-b">
+      {/* Top bar with contact info */}
+      <div className="bg-primary text-primary-foreground py-2">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-wrap items-center justify-between text-sm">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                <span>+92-300-BEAUTY1</span>
               </div>
-              <span className="font-bold text-xl text-foreground">BeautyBook</span>
-            </Link>
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                <span>Lahore, Karachi, Islamabad</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                <span>9 AM - 6 PM</span>
+              </div>
+            </div>
+            <div className="text-sm">Home Service Available</div>
           </div>
+        </div>
+      </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
-            <a href="#" className="text-foreground hover:text-primary transition-colors">
+      {/* Main navigation */}
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center justify-between">
+          <Link href="/" className="text-2xl font-bold text-primary">
+            Bella Beauty
+          </Link>
+
+          <nav className="hidden md:flex items-center gap-8">
+            <Link href="/" className="text-foreground hover:text-primary transition-colors">
+              Home
+            </Link>
+            <Link href="/services" className="text-foreground hover:text-primary transition-colors">
               Services
-            </a>
-            <a href="#" className="text-foreground hover:text-primary transition-colors">
-              Beauticians
-            </a>
-            <a href="#" className="text-foreground hover:text-primary transition-colors">
+            </Link>
+            <Link href="/booking" className="text-foreground hover:text-primary transition-colors">
+              Book Now
+            </Link>
+            <Link href="/about" className="text-foreground hover:text-primary transition-colors">
               About
-            </a>
+            </Link>
+            <Link href="/contact" className="text-foreground hover:text-primary transition-colors">
+              Contact
+            </Link>
           </nav>
 
-          {/* Auth Buttons */}
-          <div className="hidden md:flex items-center space-x-3">
-            <Link href="/auth/login">
-              <Button variant="ghost" size="sm">
-                <User className="h-4 w-4 mr-2" />
-                Sign In
-              </Button>
-            </Link>
-            <Link href="/auth/beautician/signup">
-              <Button size="sm" className="bg-secondary hover:bg-secondary/90">
-                Join as Beautician
-              </Button>
-            </Link>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <Button variant="ghost" size="sm" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            <Menu className="h-5 w-5" />
-          </Button>
-        </div>
-
-        {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className="md:hidden py-4 border-t">
-            <nav className="flex flex-col space-y-3">
-              <a href="#" className="text-foreground hover:text-primary transition-colors">
-                Services
-              </a>
-              <a href="#" className="text-foreground hover:text-primary transition-colors">
-                Beauticians
-              </a>
-              <a href="#" className="text-foreground hover:text-primary transition-colors">
-                About
-              </a>
-              <div className="flex flex-col space-y-2 pt-3 border-t">
-                <Link href="/auth/login">
-                  <Button variant="ghost" size="sm" className="justify-start w-full">
-                    <User className="h-4 w-4 mr-2" />
-                    Sign In
-                  </Button>
-                </Link>
-                <Link href="/auth/beautician/signup">
-                  <Button size="sm" className="bg-secondary hover:bg-secondary/90 w-full">
-                    Join as Beautician
-                  </Button>
-                </Link>
+          <div className="flex items-center gap-4">
+            {user ? (
+              <div className="flex items-center gap-4">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      <span className="hidden sm:inline">
+                        {customer?.full_name || user.email?.split("@")[0] || "Account"}
+                      </span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard" className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/booking" className="flex items-center gap-2">
+                        <Phone className="h-4 w-4" />
+                        Book Appointment
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <form action={signOut} className="w-full">
+                        <button type="submit" className="flex items-center gap-2 w-full text-left">
+                          <LogOut className="h-4 w-4" />
+                          Sign Out
+                        </button>
+                      </form>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button asChild>
+                  <Link href="/booking">Book Appointment</Link>
+                </Button>
               </div>
-            </nav>
+            ) : (
+              <>
+                <Button variant="outline" asChild>
+                  <Link href="/auth/login">Login</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/booking">Book Appointment</Link>
+                </Button>
+              </>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </header>
   )

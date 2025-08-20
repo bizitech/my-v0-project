@@ -1,18 +1,24 @@
-import { Header } from "@/components/header"
-import { HeroSection } from "@/components/hero-section"
+import { createClient } from "@/lib/supabase/server"
+import { Hero } from "@/components/hero"
+import { ServiceCategories } from "@/components/service-categories"
 import { FeaturedServices } from "@/components/featured-services"
-import { BeauticianCards } from "@/components/beautician-cards"
+import { WhyChooseUs } from "@/components/why-choose-us"
+import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = createClient()
+
+  // Fetch featured services
+  const { data: services } = await supabase.from("services").select("*").eq("is_active", true).limit(6)
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background">
       <Header />
-      <main>
-        <HeroSection />
-        <FeaturedServices />
-        <BeauticianCards />
-      </main>
+      <Hero />
+      <ServiceCategories />
+      <FeaturedServices services={services || []} />
+      <WhyChooseUs />
       <Footer />
     </div>
   )

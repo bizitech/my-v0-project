@@ -1,12 +1,8 @@
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import { LoginForm } from "@/components/auth/login-form"
+import { SignUpForm } from "@/components/auth/sign-up-form"
 
-export default async function LoginPage({
-  searchParams,
-}: {
-  searchParams: { redirect?: string }
-}) {
+export default async function SignUpPage() {
   // If Supabase is not configured, show setup message directly
   if (!isSupabaseConfigured) {
     return (
@@ -22,14 +18,14 @@ export default async function LoginPage({
     data: { session },
   } = await supabase.auth.getSession()
 
-  // If user is logged in, redirect to intended page or home
+  // If user is logged in, redirect to home page
   if (session) {
-    redirect(searchParams.redirect || "/")
+    redirect("/")
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-      <LoginForm redirectTo={searchParams.redirect} />
+      <SignUpForm />
     </div>
   )
 }

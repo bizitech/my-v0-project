@@ -8,9 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2, Sparkles } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useEffect } from "react"
-import { signIn } from "@/lib/actions"
+import { signUp } from "@/lib/actions"
 
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -20,29 +18,17 @@ function SubmitButton() {
       {pending ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Signing in...
+          Creating account...
         </>
       ) : (
-        "Sign In"
+        "Create Account"
       )}
     </Button>
   )
 }
 
-interface LoginFormProps {
-  redirectTo?: string
-}
-
-export function LoginForm({ redirectTo }: LoginFormProps) {
-  const router = useRouter()
-  const [state, formAction] = useActionState(signIn, null)
-
-  // Handle successful login by redirecting
-  useEffect(() => {
-    if (state?.success) {
-      router.push(redirectTo || "/")
-    }
-  }, [state, router, redirectTo])
+export function SignUpForm() {
+  const [state, formAction] = useActionState(signUp, null)
 
   return (
     <div className="w-full max-w-md space-y-8">
@@ -51,20 +37,26 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
           <Sparkles className="h-8 w-8 text-primary" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Welcome Back</h1>
-          <p className="text-muted-foreground mt-2">Sign in to book your beauty appointment</p>
+          <h1 className="text-3xl font-bold text-foreground">Join Bella Beauty</h1>
+          <p className="text-muted-foreground mt-2">Create your account to start booking appointments</p>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Sign In</CardTitle>
+          <CardTitle>Create Account</CardTitle>
         </CardHeader>
         <CardContent>
           <form action={formAction} className="space-y-4">
             {state?.error && (
               <div className="bg-destructive/10 border border-destructive/50 text-destructive px-4 py-3 rounded-lg text-sm">
                 {state.error}
+              </div>
+            )}
+
+            {state?.success && (
+              <div className="bg-green-500/10 border border-green-500/50 text-green-700 px-4 py-3 rounded-lg text-sm">
+                {state.success}
               </div>
             )}
 
@@ -75,15 +67,22 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
 
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" name="password" type="password" required className="h-11" />
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="Minimum 6 characters"
+                required
+                className="h-11"
+              />
             </div>
 
             <SubmitButton />
 
             <div className="text-center text-sm text-muted-foreground">
-              Don't have an account?{" "}
-              <Link href="/auth/sign-up" className="text-primary hover:underline font-medium">
-                Sign up
+              Already have an account?{" "}
+              <Link href="/auth/login" className="text-primary hover:underline font-medium">
+                Sign in
               </Link>
             </div>
           </form>
