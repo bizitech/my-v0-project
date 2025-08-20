@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { MapPin, Star, Clock, Phone, Search, Filter } from "lucide-react"
+import { MapPin, Star, Clock, Phone, Search, Filter, Navigation, Target } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 
@@ -22,6 +22,8 @@ interface Salon {
   rating: number
   total_reviews: number
   images: string[]
+  latitude?: number
+  longitude?: number
   opening_hours: Record<string, { open: string; close: string; closed?: boolean }>
   salon_categories: { category: string }[]
   salon_amenities: { amenity: string }[]
@@ -30,6 +32,11 @@ interface Salon {
 interface SalonSearchProps {
   salons: Salon[]
   cities: string[]
+}
+
+interface UserLocation {
+  latitude: number
+  longitude: number
 }
 
 const serviceCategories = [
@@ -41,15 +48,74 @@ const serviceCategories = [
   { id: "threading_waxing", label: "Threading & Waxing" },
 ]
 
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371 // Radius of the Earth in kilometers
+  const dLat = ((lat2 - lat1) * Math.PI) / 180
+  const dLon = ((lon2 - lon1) * Math.PI) / 180
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return R * c
+}
+
 export function SalonSearch({ salons, cities }: SalonSearchProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCity, setSelectedCity] = useState<string>("all_cities")
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [minRating, setMinRating] = useState<number>(0)
   const [showFilters, setShowFilters] = useState(false)
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
+  const [locationPermission, setLocationPermission] = useState<"granted" | "denied" | "prompt">("prompt")
+  const [maxDistance, setMaxDistance] = useState<number>(0) // 0 means no distance filter
+  const [sortBy, setSortBy] = useState<"relevance" | "distance" | "rating">("relevance")
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false)
 
-  const filteredSalons = useMemo(() => {
-    return salons.filter((salon) => {
+  const requestLocation = async () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by this browser.")
+      return
+    }
+
+    setIsLoadingLocation(true)
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        })
+        setLocationPermission("granted")
+        setSortBy("distance") // Auto-sort by distance when location is obtained
+        setIsLoadingLocation(false)
+      },
+      (error) => {
+        console.error("Error getting location:", error)
+        setLocationPermission("denied")
+        setIsLoadingLocation(false)
+
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            alert("Location access denied. You can still search by city.")
+            break
+          case error.POSITION_UNAVAILABLE:
+            alert("Location information is unavailable.")
+            break
+          case error.TIMEOUT:
+            alert("Location request timed out.")
+            break
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000, // 5 minutes
+      },
+    )
+  }
+
+  const filteredAndSortedSalons = useMemo(() => {
+    const filtered = salons.filter((salon) => {
       // Search query filter
       if (
         searchQuery &&
@@ -78,9 +144,46 @@ export function SalonSearch({ salons, cities }: SalonSearchProps) {
         return false
       }
 
+      // Distance filter
+      if (maxDistance > 0 && userLocation && salon.latitude && salon.longitude) {
+        const distance = calculateDistance(
+          userLocation.latitude,
+          userLocation.longitude,
+          salon.latitude,
+          salon.longitude,
+        )
+        if (distance > maxDistance) {
+          return false
+        }
+      }
+
       return true
     })
-  }, [salons, searchQuery, selectedCity, selectedCategories, minRating])
+
+    // Add distance information to salons
+    const salonsWithDistance = filtered.map((salon) => ({
+      ...salon,
+      distance:
+        userLocation && salon.latitude && salon.longitude
+          ? calculateDistance(userLocation.latitude, userLocation.longitude, salon.latitude, salon.longitude)
+          : null,
+    }))
+
+    // Sort salons
+    switch (sortBy) {
+      case "distance":
+        return salonsWithDistance.sort((a, b) => {
+          if (a.distance === null && b.distance === null) return 0
+          if (a.distance === null) return 1
+          if (b.distance === null) return -1
+          return a.distance - b.distance
+        })
+      case "rating":
+        return salonsWithDistance.sort((a, b) => b.rating - a.rating)
+      default:
+        return salonsWithDistance
+    }
+  }, [salons, searchQuery, selectedCity, selectedCategories, minRating, maxDistance, userLocation, sortBy])
 
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
     if (checked) {
@@ -138,11 +241,50 @@ export function SalonSearch({ salons, cities }: SalonSearchProps) {
               </SelectContent>
             </Select>
 
-            <Button variant="outline" onClick={() => setShowFilters(!showFilters)} className="lg:w-auto">
-              <Filter className="h-4 w-4 mr-2" />
-              Filters
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={requestLocation}
+                disabled={isLoadingLocation}
+                className="lg:w-auto bg-transparent"
+              >
+                {isLoadingLocation ? (
+                  <Target className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Navigation className="h-4 w-4 mr-2" />
+                )}
+                {isLoadingLocation ? "Getting Location..." : "Near Me"}
+              </Button>
+
+              <Select value={sortBy} onValueChange={(value: "relevance" | "distance" | "rating") => setSortBy(value)}>
+                <SelectTrigger className="w-full lg:w-40">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="relevance">Relevance</SelectItem>
+                  <SelectItem value="distance" disabled={!userLocation}>
+                    Distance
+                  </SelectItem>
+                  <SelectItem value="rating">Rating</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Button variant="outline" onClick={() => setShowFilters(!showFilters)} className="lg:w-auto">
+                <Filter className="h-4 w-4 mr-2" />
+                Filters
+              </Button>
+            </div>
           </div>
+
+          {/* Location Status */}
+          {userLocation && (
+            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center gap-2 text-green-800">
+                <MapPin className="h-4 w-4" />
+                <span className="text-sm">Location detected - showing salons near you</span>
+              </div>
+            </div>
+          )}
 
           {/* Advanced Filters */}
           {showFilters && (
@@ -165,19 +307,41 @@ export function SalonSearch({ salons, cities }: SalonSearchProps) {
                 </div>
               </div>
 
-              <div>
-                <h3 className="font-medium mb-3">Minimum Rating</h3>
-                <Select value={minRating.toString()} onValueChange={(value) => setMinRating(Number(value))}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Any Rating" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">Any Rating</SelectItem>
-                    <SelectItem value="3">3+ Stars</SelectItem>
-                    <SelectItem value="4">4+ Stars</SelectItem>
-                    <SelectItem value="4.5">4.5+ Stars</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="font-medium mb-3">Minimum Rating</h3>
+                  <Select value={minRating.toString()} onValueChange={(value) => setMinRating(Number(value))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Any Rating" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">Any Rating</SelectItem>
+                      <SelectItem value="3">3+ Stars</SelectItem>
+                      <SelectItem value="4">4+ Stars</SelectItem>
+                      <SelectItem value="4.5">4.5+ Stars</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <h3 className="font-medium mb-3">Maximum Distance</h3>
+                  <Select
+                    value={maxDistance.toString()}
+                    onValueChange={(value) => setMaxDistance(Number(value))}
+                    disabled={!userLocation}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={userLocation ? "Any Distance" : "Enable location first"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">Any Distance</SelectItem>
+                      <SelectItem value="5">Within 5 km</SelectItem>
+                      <SelectItem value="10">Within 10 km</SelectItem>
+                      <SelectItem value="20">Within 20 km</SelectItem>
+                      <SelectItem value="50">Within 50 km</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           )}
@@ -187,13 +351,19 @@ export function SalonSearch({ salons, cities }: SalonSearchProps) {
       {/* Results */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">
-          {filteredSalons.length} Salon{filteredSalons.length !== 1 ? "s" : ""} Found
+          {filteredAndSortedSalons.length} Salon{filteredAndSortedSalons.length !== 1 ? "s" : ""} Found
         </h2>
+        {userLocation && sortBy === "distance" && (
+          <Badge variant="outline" className="text-sm">
+            <Navigation className="h-3 w-3 mr-1" />
+            Sorted by distance
+          </Badge>
+        )}
       </div>
 
       {/* Salon Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredSalons.map((salon) => {
+        {filteredAndSortedSalons.map((salon) => {
           const status = getCurrentStatus(salon.opening_hours)
           return (
             <Card key={salon.id} className="overflow-hidden hover:shadow-lg transition-shadow">
@@ -210,6 +380,14 @@ export function SalonSearch({ salons, cities }: SalonSearchProps) {
                     {status.text}
                   </Badge>
                 </div>
+                {salon.distance !== null && (
+                  <div className="absolute top-4 left-4">
+                    <Badge variant="outline" className="bg-white/90 text-gray-900">
+                      <MapPin className="h-3 w-3 mr-1" />
+                      {salon.distance < 1 ? `${Math.round(salon.distance * 1000)}m` : `${salon.distance.toFixed(1)}km`}
+                    </Badge>
+                  </div>
+                )}
               </div>
 
               <CardHeader>
@@ -268,7 +446,7 @@ export function SalonSearch({ salons, cities }: SalonSearchProps) {
         })}
       </div>
 
-      {filteredSalons.length === 0 && (
+      {filteredAndSortedSalons.length === 0 && (
         <Card>
           <CardContent className="p-12 text-center">
             <h3 className="text-xl font-medium text-gray-900 mb-2">No salons found</h3>
@@ -279,6 +457,7 @@ export function SalonSearch({ salons, cities }: SalonSearchProps) {
                 setSelectedCity("all_cities")
                 setSelectedCategories([])
                 setMinRating(0)
+                setMaxDistance(0)
               }}
             >
               Clear Filters

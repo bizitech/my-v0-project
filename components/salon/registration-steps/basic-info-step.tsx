@@ -17,10 +17,20 @@ interface BasicInfoStepProps {
 export function BasicInfoStep({ data, updateData, onNext }: BasicInfoStepProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    console.log("[v0] Form submitted with data:", data)
+    console.log("[v0] Form validation - isValid:", isValid)
     onNext()
   }
 
   const isValid = data.salonName && data.ownerName && data.email && data.phone
+
+  console.log("[v0] Current form data:", {
+    salonName: data.salonName,
+    ownerName: data.ownerName,
+    email: data.email,
+    phone: data.phone,
+    isValid,
+  })
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -88,8 +98,13 @@ export function BasicInfoStep({ data, updateData, onNext }: BasicInfoStepProps) 
       </div>
 
       <div className="flex justify-end">
-        <Button type="submit" disabled={!isValid} className="px-8">
-          Continue
+        <Button
+          type="submit"
+          disabled={!isValid}
+          className="px-8"
+          onClick={() => console.log("[v0] Continue button clicked, isValid:", isValid)}
+        >
+          Continue to Location
         </Button>
       </div>
     </form>

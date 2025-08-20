@@ -327,24 +327,25 @@ export async function registerSalon(registrationData: SalonRegistrationData) {
   const supabase = createClient()
 
   try {
-    // Create salon record
     const { data: salon, error: salonError } = await supabase
       .from("salons")
       .insert({
         name: registrationData.salonName,
         description: registrationData.description,
-        owner_name: registrationData.ownerName,
+        owner_name: registrationData.ownerName, // Now supported with new column
         email: registrationData.email,
         phone: registrationData.phone,
         address: registrationData.address,
         city: registrationData.city,
-        area: registrationData.area,
+        area: registrationData.area, // Now supported with new column
         postal_code: registrationData.postalCode,
-        opening_hours: registrationData.openingHours,
+        business_hours: registrationData.openingHours, // Changed from opening_hours
         images: registrationData.images,
-        is_verified: false,
-        is_active: false, // Pending approval
+        status: "pending", // Changed from is_verified and is_active
         subscription_plan: "basic",
+        home_service_available: true,
+        service_radius: 10, // Default 10km radius
+        commission_rate: 0.15, // Default 15% commission
       })
       .select()
       .single()
@@ -354,31 +355,17 @@ export async function registerSalon(registrationData: SalonRegistrationData) {
       throw new Error("Failed to register salon. Please try again.")
     }
 
-    // Insert salon categories
-    if (registrationData.categories.length > 0) {
-      const categoryInserts = registrationData.categories.map((category) => ({
-        salon_id: salon.id,
-        category: category,
-      }))
+    // Store categories and amenities in the amenities array column instead
+    if (registrationData.categories.length > 0 || registrationData.amenities.length > 0) {
+      const allAmenities = [...registrationData.categories, ...registrationData.amenities]
 
-      const { error: categoryError } = await supabase.from("salon_categories").insert(categoryInserts)
-
-      if (categoryError) {
-        console.error("Category creation error:", categoryError)
-      }
-    }
-
-    // Insert salon amenities
-    if (registrationData.amenities.length > 0) {
-      const amenityInserts = registrationData.amenities.map((amenity) => ({
-        salon_id: salon.id,
-        amenity: amenity,
-      }))
-
-      const { error: amenityError } = await supabase.from("salon_amenities").insert(amenityInserts)
+      const { error: amenityError } = await supabase
+        .from("salons")
+        .update({ amenities: allAmenities })
+        .eq("id", salon.id)
 
       if (amenityError) {
-        console.error("Amenity creation error:", amenityError)
+        console.error("Amenity update error:", amenityError)
       }
     }
 
@@ -386,5 +373,160 @@ export async function registerSalon(registrationData: SalonRegistrationData) {
   } catch (error) {
     console.error("Salon registration error:", error)
     throw new Error("An unexpected error occurred during registration. Please try again.")
+  }
+}
+
+export async function approveSalon(prevState: any, formData: FormData) {
+  const supabase = createClient()
+
+  // Check if user is platform admin
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: "You must be logged in" }
+  }
+
+  // TODO: Add proper admin role check
+  // For now, we'll assume the user is an admin
+
+  try {
+    const salonId = formData.get("salonId")
+
+    if (!salonId) {
+      return { error: "Salon ID is required" }
+    }
+
+    const { error } = await supabase
+      .from("salons")
+      .update({
+        is_active: true,
+        is_verified: true,
+        approved_at: new Date().toISOString(),
+      })
+      .eq("id", salonId)
+
+    if (error) {
+      console.error("Salon approval error:", error)
+      return { error: "Failed to approve salon. Please try again." }
+    }
+
+    revalidatePath("/platform-admin")
+    return { success: true }
+  } catch (error) {
+    console.error("Salon approval error:", error)
+    return { error: "An unexpected error occurred. Please try again." }
+  }
+}
+
+export async function rejectSalon(prevState: any, formData: FormData) {
+  const supabase = createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: "You must be logged in" }
+  }
+
+  try {
+    const salonId = formData.get("salonId")
+    const rejectionReason = formData.get("rejectionReason")
+
+    if (!salonId) {
+      return { error: "Salon ID is required" }
+    }
+
+    const { error } = await supabase
+      .from("salons")
+      .update({
+        is_active: false,
+        is_verified: false,
+        rejection_reason: rejectionReason?.toString() || "Application rejected",
+      })
+      .eq("id", salonId)
+
+    if (error) {
+      console.error("Salon rejection error:", error)
+      return { error: "Failed to reject salon. Please try again." }
+    }
+
+    revalidatePath("/platform-admin")
+    return { success: true }
+  } catch (error) {
+    console.error("Salon rejection error:", error)
+    return { error: "An unexpected error occurred. Please try again." }
+  }
+}
+
+export async function suspendSalon(prevState: any, formData: FormData) {
+  const supabase = createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: "You must be logged in" }
+  }
+
+  try {
+    const salonId = formData.get("salonId")
+    const suspensionReason = formData.get("suspensionReason")
+
+    if (!salonId) {
+      return { error: "Salon ID is required" }
+    }
+
+    const { error } = await supabase
+      .from("salons")
+      .update({
+        is_active: false,
+        suspension_reason: suspensionReason?.toString() || "Salon suspended",
+      })
+      .eq("id", salonId)
+
+    if (error) {
+      console.error("Salon suspension error:", error)
+      return { error: "Failed to suspend salon. Please try again." }
+    }
+
+    revalidatePath("/platform-admin")
+    return { success: true }
+  } catch (error) {
+    console.error("Salon suspension error:", error)
+    return { error: "An unexpected error occurred. Please try again." }
+  }
+}
+
+export async function updateCommissionRate(prevState: any, formData: FormData) {
+  const supabase = createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: "You must be logged in" }
+  }
+
+  try {
+    const commissionRate = Number.parseFloat(formData.get("commissionRate") as string)
+    const transactionFee = Number.parseFloat(formData.get("transactionFee") as string)
+
+    if (isNaN(commissionRate) || isNaN(transactionFee)) {
+      return { error: "Invalid commission rate or transaction fee" }
+    }
+
+    // In a real app, this would update a system settings table
+    // For now, we'll just return success
+
+    revalidatePath("/platform-admin")
+    return { success: true }
+  } catch (error) {
+    console.error("Commission update error:", error)
+    return { error: "An unexpected error occurred. Please try again." }
   }
 }

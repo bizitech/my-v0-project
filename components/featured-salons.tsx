@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, Star, Clock, Phone } from "lucide-react"
+import { MapPin, Star } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 
@@ -45,83 +45,67 @@ export function FeaturedSalons({ salons }: FeaturedSalonsProps) {
   }
 
   return (
-    <section className="py-16 bg-gradient-to-br from-rose-50 to-pink-50">
+    <section className="py-16 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Featured Beauty Salons</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Discover top-rated beauty salons across Pakistan offering exceptional services and experiences
+          <h2 className="text-3xl font-bold text-foreground mb-4">Recommended</h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Top-rated beauty salons across Pakistan offering exceptional services
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {salons.map((salon) => {
             const status = getCurrentStatus(salon.opening_hours)
             return (
-              <Card key={salon.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="relative h-48">
+              <Card
+                key={salon.id}
+                className="overflow-hidden hover:shadow-lg transition-all duration-300 border-border bg-card"
+              >
+                <div className="relative h-40">
                   <Image
-                    src={salon.images[0] || "/placeholder.svg?height=200&width=400&query=beauty salon interior"}
+                    src={salon.images[0] || "/placeholder.svg?height=160&width=300&query=beauty salon interior"}
                     alt={salon.name}
                     fill
                     className="object-cover"
                   />
-                  <div className="absolute top-4 right-4">
-                    <Badge variant={status.isOpen ? "default" : "secondary"} className="bg-white/90 text-gray-900">
-                      <Clock className="h-3 w-3 mr-1" />
-                      {status.text}
+                  <div className="absolute top-3 right-3">
+                    <Badge
+                      variant={status.isOpen ? "default" : "secondary"}
+                      className="bg-background/90 text-foreground text-xs"
+                    >
+                      {status.isOpen ? "Open" : "Closed"}
                     </Badge>
                   </div>
                 </div>
 
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-xl mb-2">{salon.name}</CardTitle>
-                      <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                        <MapPin className="h-4 w-4" />
-                        <span>
-                          {salon.area}, {salon.city}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                <CardContent className="p-4">
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-card-foreground line-clamp-1">{salon.name}</h3>
+
+                    <div className="flex items-center gap-1 text-sm">
+                      <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                       <span className="font-medium">{salon.rating}</span>
-                      <span className="text-sm text-gray-500">({salon.total_reviews})</span>
+                      <span className="text-muted-foreground">({salon.total_reviews})</span>
                     </div>
-                  </div>
-                </CardHeader>
 
-                <CardContent>
-                  <p className="text-gray-600 mb-4 line-clamp-2">{salon.description}</p>
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <MapPin className="h-3 w-3" />
+                      <span className="line-clamp-1">
+                        {salon.area}, {salon.city}
+                      </span>
+                    </div>
 
-                  {/* Service Categories */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {salon.salon_categories.slice(0, 3).map((cat, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {cat.category.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase())}
-                      </Badge>
-                    ))}
-                    {salon.salon_categories.length > 3 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{salon.salon_categories.length - 3} more
-                      </Badge>
-                    )}
-                  </div>
+                    <div className="flex flex-wrap gap-1">
+                      {salon.salon_categories.slice(0, 2).map((cat, index) => (
+                        <Badge key={index} variant="outline" className="text-xs px-2 py-0">
+                          {cat.category.replace("_", " ")}
+                        </Badge>
+                      ))}
+                    </div>
 
-                  {/* Contact Info */}
-                  <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
-                    <Phone className="h-4 w-4" />
-                    <span>{salon.phone}</span>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button asChild className="flex-1">
-                      <Link href={`/salon/${salon.id}`}>View Details</Link>
-                    </Button>
-                    <Button variant="outline" asChild>
-                      <Link href={`/booking?salon=${salon.id}`}>Book Now</Link>
+                    <Button asChild className="w-full mt-3 bg-primary hover:bg-primary/90">
+                      <Link href={`/salon/${salon.id}`}>View & Book</Link>
                     </Button>
                   </div>
                 </CardContent>
@@ -131,7 +115,12 @@ export function FeaturedSalons({ salons }: FeaturedSalonsProps) {
         </div>
 
         <div className="text-center mt-12">
-          <Button asChild size="lg">
+          <Button
+            asChild
+            size="lg"
+            variant="outline"
+            className="border-primary text-primary hover:bg-primary hover:text-primary-foreground bg-transparent"
+          >
             <Link href="/salons">Browse All Salons</Link>
           </Button>
         </div>

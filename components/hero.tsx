@@ -1,63 +1,56 @@
 import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { Sparkles, Home, Clock } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Search, MapPin, Calendar } from "lucide-react"
 
 export function Hero() {
   return (
-    <section className="relative bg-gradient-to-br from-primary/5 via-background to-accent/5 py-20">
-      <div className="container mx-auto px-4">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div className="space-y-8">
-            <div className="space-y-4">
-              <h1 className="text-4xl md:text-6xl font-bold text-foreground leading-tight">
-                Premium Beauty Services
-                <span className="text-primary block">At Your Doorstep</span>
-              </h1>
-              <p className="text-xl text-muted-foreground leading-relaxed">
-                Experience luxury beauty treatments from certified professionals. Available both at our salon and as
-                home services across Pakistan.
-              </p>
-            </div>
+    <section className="relative min-h-[80vh] bg-gradient-to-br from-purple-400 via-pink-400 to-red-400 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-orange-500/20" />
 
-            <div className="flex flex-wrap gap-6 text-sm">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Sparkles className="h-5 w-5 text-accent" />
-                <span>Certified Professionals</span>
-              </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Home className="h-5 w-5 text-accent" />
-                <span>Home Service Available</span>
-              </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Clock className="h-5 w-5 text-accent" />
-                <span>Same Day Booking</span>
-              </div>
-            </div>
+      <div className="relative container mx-auto px-4 py-20">
+        <div className="max-w-4xl mx-auto text-center text-white">
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+            Book local beauty and
+            <br />
+            wellness services
+          </h1>
 
-            <div className="flex flex-wrap gap-4">
-              <Button size="lg" asChild className="text-lg px-8">
-                <Link href="/booking">Book Appointment</Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild className="text-lg px-8 bg-transparent">
-                <Link href="/services">View Services</Link>
+          <div className="bg-white rounded-2xl p-6 shadow-2xl max-w-4xl mx-auto mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <Search className="h-4 w-4" />
+                  All treatments and services
+                </label>
+                <Input placeholder="Search for treatments..." className="border-gray-200 focus:border-primary" />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  Current location
+                </label>
+                <Input placeholder="Enter your city..." className="border-gray-200 focus:border-primary" />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Any date
+                </label>
+                <Input type="date" className="border-gray-200 focus:border-primary" />
+              </div>
+
+              <Button size="lg" className="bg-black hover:bg-gray-800 text-white h-12">
+                Search
               </Button>
             </div>
           </div>
 
-          <div className="relative">
-            <div className="aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-primary/10 to-accent/10">
-              <img
-                src="/pakistani-woman-facial.png"
-                alt="Beauty treatment at Bella Beauty Parlor"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="absolute -bottom-6 -right-6 bg-white p-6 rounded-xl shadow-lg border">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">500+</div>
-                <div className="text-sm text-muted-foreground">Happy Customers</div>
-              </div>
-            </div>
+          <div className="text-center">
+            <p className="text-lg font-medium mb-2">
+              <span className="font-bold">164,188</span> appointments booked today
+            </p>
           </div>
         </div>
       </div>

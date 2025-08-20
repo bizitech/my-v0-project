@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Phone, MapPin, Clock, User, LogOut } from "lucide-react"
+import { User, LogOut, Sparkles } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import {
   DropdownMenu,
@@ -26,56 +26,15 @@ export async function Header() {
 
   return (
     <header className="bg-white shadow-sm border-b">
-      {/* Top bar with contact info */}
-      <div className="bg-primary text-primary-foreground py-2">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-wrap items-center justify-between text-sm">
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4" />
-                <span>+92-300-BEAUTY1</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                <span>Lahore, Karachi, Islamabad</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                <span>9 AM - 6 PM</span>
-              </div>
-            </div>
-            <div className="text-sm">Home Service Available</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main navigation */}
-      <div className="container mx-auto px-4 py-4">
+      <div className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold text-primary">
-            Bella Beauty
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-2xl font-bold text-primary hover:text-secondary transition-colors"
+          >
+            <Sparkles className="h-8 w-8" />
+            <span>Bella Beauty</span>
           </Link>
-
-          <nav className="hidden md:flex items-center gap-8">
-            <Link href="/" className="text-foreground hover:text-primary transition-colors">
-              Home
-            </Link>
-            <Link href="/services" className="text-foreground hover:text-primary transition-colors">
-              Services
-            </Link>
-            <Link href="/booking" className="text-foreground hover:text-primary transition-colors">
-              Book Now
-            </Link>
-            <Link href="/salon/register" className="text-foreground hover:text-primary transition-colors">
-              Register Salon
-            </Link>
-            <Link href="/about" className="text-foreground hover:text-primary transition-colors">
-              About
-            </Link>
-            <Link href="/contact" className="text-foreground hover:text-primary transition-colors">
-              Contact
-            </Link>
-          </nav>
 
           <div className="flex items-center gap-4">
             {user ? (
@@ -96,12 +55,6 @@ export async function Header() {
                         Dashboard
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/booking" className="flex items-center gap-2">
-                        <Phone className="h-4 w-4" />
-                        Book Appointment
-                      </Link>
-                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <form action={signOut} className="w-full">
@@ -113,20 +66,14 @@ export async function Header() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <Button asChild>
-                  <Link href="/booking">Book Appointment</Link>
-                </Button>
               </div>
             ) : (
               <>
                 <Button variant="outline" asChild>
                   <Link href="/auth/login">Login</Link>
                 </Button>
-                <Button variant="outline" asChild>
-                  <Link href="/salon/register">Register Salon</Link>
-                </Button>
                 <Button asChild>
-                  <Link href="/booking">Book Appointment</Link>
+                  <Link href="/salon/register">Register Salon</Link>
                 </Button>
               </>
             )}
