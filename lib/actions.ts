@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
+import type { SalonRegistrationData } from "@/components/salon/salon-registration-flow"
 
 export async function signIn(prevState: any, formData: FormData) {
   if (!formData) {
@@ -89,6 +90,7 @@ export async function createBooking(prevState: any, formData: FormData) {
   }
 
   try {
+    const salonId = formData.get("salonId") // Add salon ID to booking
     const serviceId = formData.get("serviceId")
     const staffId = formData.get("staffId")
     const bookingDate = formData.get("bookingDate")
@@ -99,7 +101,7 @@ export async function createBooking(prevState: any, formData: FormData) {
     const totalAmount = Number.parseFloat(formData.get("totalAmount") as string)
     const paymentMethod = formData.get("paymentMethod") as string
 
-    if (!serviceId || !staffId || !bookingDate || !bookingTime || !totalAmount || !paymentMethod) {
+    if (!salonId || !serviceId || !staffId || !bookingDate || !bookingTime || !totalAmount || !paymentMethod) {
       return { error: "Missing required booking information" }
     }
 
@@ -107,6 +109,7 @@ export async function createBooking(prevState: any, formData: FormData) {
     const { data: booking, error: bookingError } = await supabase
       .from("bookings")
       .insert({
+        salon_id: salonId, // Include salon_id in booking
         customer_id: user.id,
         service_id: serviceId,
         staff_id: staffId,
@@ -317,5 +320,71 @@ export async function processPayment(prevState: any, formData: FormData) {
   } catch (error) {
     console.error("Payment processing error:", error)
     return { error: "An unexpected error occurred. Please try again." }
+  }
+}
+
+export async function registerSalon(registrationData: SalonRegistrationData) {
+  const supabase = createClient()
+
+  try {
+    // Create salon record
+    const { data: salon, error: salonError } = await supabase
+      .from("salons")
+      .insert({
+        name: registrationData.salonName,
+        description: registrationData.description,
+        owner_name: registrationData.ownerName,
+        email: registrationData.email,
+        phone: registrationData.phone,
+        address: registrationData.address,
+        city: registrationData.city,
+        area: registrationData.area,
+        postal_code: registrationData.postalCode,
+        opening_hours: registrationData.openingHours,
+        images: registrationData.images,
+        is_verified: false,
+        is_active: false, // Pending approval
+        subscription_plan: "basic",
+      })
+      .select()
+      .single()
+
+    if (salonError) {
+      console.error("Salon creation error:", salonError)
+      throw new Error("Failed to register salon. Please try again.")
+    }
+
+    // Insert salon categories
+    if (registrationData.categories.length > 0) {
+      const categoryInserts = registrationData.categories.map((category) => ({
+        salon_id: salon.id,
+        category: category,
+      }))
+
+      const { error: categoryError } = await supabase.from("salon_categories").insert(categoryInserts)
+
+      if (categoryError) {
+        console.error("Category creation error:", categoryError)
+      }
+    }
+
+    // Insert salon amenities
+    if (registrationData.amenities.length > 0) {
+      const amenityInserts = registrationData.amenities.map((amenity) => ({
+        salon_id: salon.id,
+        amenity: amenity,
+      }))
+
+      const { error: amenityError } = await supabase.from("salon_amenities").insert(amenityInserts)
+
+      if (amenityError) {
+        console.error("Amenity creation error:", amenityError)
+      }
+    }
+
+    return { success: true, salonId: salon.id }
+  } catch (error) {
+    console.error("Salon registration error:", error)
+    throw new Error("An unexpected error occurred during registration. Please try again.")
   }
 }

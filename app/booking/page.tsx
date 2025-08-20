@@ -6,6 +6,7 @@ import { redirect } from "next/navigation"
 
 interface SearchParams {
   service?: string
+  salon?: string
 }
 
 export default async function BookingPage({
@@ -24,15 +25,36 @@ export default async function BookingPage({
     redirect("/auth/login?redirect=/booking")
   }
 
-  // Fetch services and staff
-  const { data: services } = await supabase
-    .from("services")
+  const { data: salons } = await supabase
+    .from("salons")
     .select("*")
     .eq("is_active", true)
-    .order("category", { ascending: true })
-    .order("name", { ascending: true })
+    .eq("is_verified", true)
+    .order("rating", { ascending: false })
 
-  const { data: staff } = await supabase.from("staff").select("*").eq("is_available", true)
+  let selectedSalon = null
+  let services: any[] = []
+  let staff: any[] = []
+
+  if (searchParams.salon) {
+    selectedSalon = salons?.find((s) => s.id === searchParams.salon) || null
+
+    if (selectedSalon) {
+      const [{ data: salonServices }, { data: salonStaff }] = await Promise.all([
+        supabase
+          .from("services")
+          .select("*")
+          .eq("salon_id", selectedSalon.id)
+          .eq("is_active", true)
+          .order("category", { ascending: true })
+          .order("name", { ascending: true }),
+        supabase.from("staff").select("*").eq("salon_id", selectedSalon.id).eq("is_available", true),
+      ])
+
+      services = salonServices || []
+      staff = salonStaff || []
+    }
+  }
 
   const preselectedService = searchParams.service ? services?.find((s) => s.id === searchParams.service) : null
 
@@ -45,13 +67,17 @@ export default async function BookingPage({
           <div className="mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Book Your Appointment</h1>
             <p className="text-lg text-muted-foreground">
-              Select your preferred service, date, and time. We'll confirm your booking within minutes.
+              {selectedSalon
+                ? `Book your appointment at ${selectedSalon.name}. Select your service, date, and time.`
+                : "Choose your preferred salon, service, date, and time. We'll confirm your booking within minutes."}
             </p>
           </div>
 
           <BookingFlow
-            services={services || []}
-            staff={staff || []}
+            salons={salons || []}
+            selectedSalon={selectedSalon}
+            services={services}
+            staff={staff}
             preselectedService={preselectedService}
             user={user}
           />

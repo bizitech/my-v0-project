@@ -66,6 +66,9 @@ export async function Header() {
             <Link href="/booking" className="text-foreground hover:text-primary transition-colors">
               Book Now
             </Link>
+            <Link href="/salon/register" className="text-foreground hover:text-primary transition-colors">
+              Register Salon
+            </Link>
             <Link href="/about" className="text-foreground hover:text-primary transition-colors">
               About
             </Link>
@@ -118,6 +121,9 @@ export async function Header() {
               <>
                 <Button variant="outline" asChild>
                   <Link href="/auth/login">Login</Link>
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link href="/salon/register">Register Salon</Link>
                 </Button>
                 <Button asChild>
                   <Link href="/booking">Book Appointment</Link>
