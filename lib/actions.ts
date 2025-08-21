@@ -327,25 +327,49 @@ export async function registerSalon(registrationData: SalonRegistrationData) {
   const supabase = createClient()
 
   try {
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: registrationData.email,
+      password: registrationData.password,
+      options: {
+        emailRedirectTo:
+          process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/callback`,
+        data: {
+          full_name: registrationData.ownerName,
+          phone: registrationData.phone,
+          user_type: "salon_owner",
+        },
+      },
+    })
+
+    if (authError) {
+      console.error("User creation error:", authError)
+      throw new Error(`Failed to create user account: ${authError.message}`)
+    }
+
+    if (!authData.user) {
+      throw new Error("Failed to create user account")
+    }
+
     const { data: salon, error: salonError } = await supabase
       .from("salons")
       .insert({
+        owner_id: authData.user.id, // Link salon to user account
         name: registrationData.salonName,
         description: registrationData.description,
-        owner_name: registrationData.ownerName, // Now supported with new column
+        owner_name: registrationData.ownerName,
         email: registrationData.email,
         phone: registrationData.phone,
         address: registrationData.address,
         city: registrationData.city,
-        area: registrationData.area, // Now supported with new column
+        area: registrationData.area,
         postal_code: registrationData.postalCode,
-        business_hours: registrationData.openingHours, // Changed from opening_hours
+        business_hours: registrationData.openingHours,
         images: registrationData.images,
-        status: "pending", // Changed from is_verified and is_active
+        status: "pending",
         subscription_plan: "basic",
         home_service_available: true,
-        service_radius: 10, // Default 10km radius
-        commission_rate: 0.15, // Default 15% commission
+        service_radius: 10,
+        commission_rate: 0.15,
       })
       .select()
       .single()
@@ -353,6 +377,26 @@ export async function registerSalon(registrationData: SalonRegistrationData) {
     if (salonError) {
       console.error("Salon creation error:", salonError)
       throw new Error("Failed to register salon. Please try again.")
+    }
+
+    if (registrationData.services && registrationData.services.length > 0) {
+      const servicesWithSalonId = registrationData.services.map((service) => ({
+        salon_id: salon.id,
+        name: service.name,
+        description: service.description || "",
+        category: service.category,
+        duration: service.duration || 60,
+        salon_price: service.salonPrice,
+        home_service_price: service.homeServicePrice,
+        is_active: true,
+      }))
+
+      const { error: servicesError } = await supabase.from("services").insert(servicesWithSalonId)
+
+      if (servicesError) {
+        console.error("Services creation error:", servicesError)
+        // Don't fail registration if services can't be added
+      }
     }
 
     // Store categories and amenities in the amenities array column instead
@@ -369,7 +413,7 @@ export async function registerSalon(registrationData: SalonRegistrationData) {
       }
     }
 
-    return { success: true, salonId: salon.id }
+    return { success: true, salonId: salon.id, userId: authData.user.id }
   } catch (error) {
     console.error("Salon registration error:", error)
     throw new Error("An unexpected error occurred during registration. Please try again.")

@@ -19,6 +19,17 @@ export const createClient = cache(() => {
       auth: {
         getUser: () => Promise.resolve({ data: { user: null }, error: null }),
         getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+        signUp: () =>
+          Promise.resolve({
+            data: { user: null, session: null },
+            error: { message: "Authentication not configured. Please set up Supabase environment variables." },
+          }),
+        signInWithPassword: () =>
+          Promise.resolve({
+            data: { user: null, session: null },
+            error: { message: "Authentication not configured" },
+          }),
+        signOut: () => Promise.resolve({ error: null }),
       },
       from: () => ({
         select: () => ({
