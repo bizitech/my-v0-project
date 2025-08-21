@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { CheckCircle, Clock, Mail, Phone } from "lucide-react"
+import { CheckCircle, Clock, Mail, Settings } from "lucide-react"
 import Link from "next/link"
 import type { SalonRegistrationData } from "../salon-registration-flow"
 
@@ -32,10 +32,17 @@ export function SuccessStep({ data }: SuccessStepProps) {
           <h3 className="font-semibold text-gray-900 mb-4">What's Next?</h3>
           <div className="space-y-4 text-left">
             <div className="flex items-start gap-3">
+              <Settings className="h-5 w-5 text-purple-600 mt-0.5" />
+              <div>
+                <p className="font-medium text-gray-900">Complete Salon Setup</p>
+                <p className="text-sm text-gray-600">Add services, prices, and staff in your dashboard</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
               <Clock className="h-5 w-5 text-blue-600 mt-0.5" />
               <div>
-                <p className="font-medium text-gray-900">Review Process</p>
-                <p className="text-sm text-gray-600">24-48 hours for application review</p>
+                <p className="font-medium text-gray-900">Go Live Instantly</p>
+                <p className="text-sm text-gray-600">Start accepting bookings immediately after setup</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -45,33 +52,26 @@ export function SuccessStep({ data }: SuccessStepProps) {
                 <p className="text-sm text-gray-600">Sent to {data.email}</p>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <Phone className="h-5 w-5 text-purple-600 mt-0.5" />
-              <div>
-                <p className="font-medium text-gray-900">Phone Verification</p>
-                <p className="text-sm text-gray-600">Call to {data.phone} if needed</p>
-              </div>
-            </div>
           </div>
         </CardContent>
       </Card>
 
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-w-2xl mx-auto">
-        <h4 className="font-medium text-yellow-900 mb-2">Important Notes:</h4>
-        <ul className="text-sm text-yellow-800 space-y-1 text-left">
-          <li>• Keep your phone accessible for verification calls</li>
-          <li>• Check your email regularly for updates</li>
-          <li>• Prepare additional documents if requested</li>
-          <li>• You can update your salon information after approval</li>
+      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 max-w-2xl mx-auto">
+        <h4 className="font-medium text-purple-900 mb-2">Complete Your Setup:</h4>
+        <ul className="text-sm text-purple-800 space-y-1 text-left">
+          <li>• Add your services with prices (e.g., Haircut - Rs 1500)</li>
+          <li>• Add staff members and their specialties</li>
+          <li>• Set your business hours and availability</li>
+          <li>• Upload salon photos to attract customers</li>
         </ul>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
         <Button asChild>
-          <Link href="/">Return to Homepage</Link>
+          <Link href="/salon-dashboard">Go to Salon Dashboard</Link>
         </Button>
         <Button variant="outline" asChild>
-          <Link href="/contact">Contact Support</Link>
+          <Link href="/">Return to Homepage</Link>
         </Button>
       </div>
     </div>

@@ -20,6 +20,18 @@ export const createClient = cache(() => {
         getUser: () => Promise.resolve({ data: { user: null }, error: null }),
         getSession: () => Promise.resolve({ data: { session: null }, error: null }),
       },
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            order: () => ({
+              limit: () => Promise.resolve({ data: [], error: null }),
+            }),
+          }),
+        }),
+        insert: () => Promise.resolve({ data: null, error: { message: "Database not configured" } }),
+        update: () => Promise.resolve({ data: null, error: { message: "Database not configured" } }),
+        delete: () => Promise.resolve({ data: null, error: { message: "Database not configured" } }),
+      }),
     }
   }
 

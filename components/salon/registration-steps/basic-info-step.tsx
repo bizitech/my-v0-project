@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Eye, EyeOff } from "lucide-react"
+import { useState } from "react"
 import type { SalonRegistrationData } from "../salon-registration-flow"
 
 interface BasicInfoStepProps {
@@ -15,6 +17,9 @@ interface BasicInfoStepProps {
 }
 
 export function BasicInfoStep({ data, updateData, onNext }: BasicInfoStepProps) {
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     console.log("[v0] Form submitted with data:", data)
@@ -22,13 +27,23 @@ export function BasicInfoStep({ data, updateData, onNext }: BasicInfoStepProps) 
     onNext()
   }
 
-  const isValid = data.salonName && data.ownerName && data.email && data.phone
+  const isValid =
+    data.salonName &&
+    data.ownerName &&
+    data.email &&
+    data.phone &&
+    data.password &&
+    data.password.length >= 6 &&
+    data.confirmPassword &&
+    data.password === data.confirmPassword
 
   console.log("[v0] Current form data:", {
     salonName: data.salonName,
     ownerName: data.ownerName,
     email: data.email,
     phone: data.phone,
+    passwordLength: data.password?.length || 0,
+    passwordsMatch: data.password === data.confirmPassword,
     isValid,
   })
 
@@ -36,7 +51,7 @@ export function BasicInfoStep({ data, updateData, onNext }: BasicInfoStepProps) 
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Basic Information</h2>
-        <p className="text-gray-600">Tell us about your salon and yourself</p>
+        <p className="text-gray-600">Tell us about your salon and create your account</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -83,6 +98,61 @@ export function BasicInfoStep({ data, updateData, onNext }: BasicInfoStepProps) 
             placeholder="+92-300-1234567"
             required
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="password">Password *</Label>
+          <div className="relative">
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              value={data.password}
+              onChange={(e) => updateData({ password: e.target.value })}
+              placeholder="Create a secure password"
+              required
+              minLength={6}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
+            </Button>
+          </div>
+          <p className="text-xs text-gray-500">Minimum 6 characters</p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="confirmPassword">Confirm Password *</Label>
+          <div className="relative">
+            <Input
+              id="confirmPassword"
+              type={showConfirmPassword ? "text" : "password"}
+              value={data.confirmPassword}
+              onChange={(e) => updateData({ confirmPassword: e.target.value })}
+              placeholder="Confirm your password"
+              required
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            >
+              {showConfirmPassword ? (
+                <EyeOff className="h-4 w-4 text-gray-400" />
+              ) : (
+                <Eye className="h-4 w-4 text-gray-400" />
+              )}
+            </Button>
+          </div>
+          {data.confirmPassword && data.password !== data.confirmPassword && (
+            <p className="text-xs text-red-500">Passwords do not match</p>
+          )}
         </div>
       </div>
 

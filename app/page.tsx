@@ -8,23 +8,31 @@ import { Footer } from "@/components/footer"
 export default async function HomePage() {
   const supabase = createClient()
 
-  const { data: salons } = await supabase
-    .from("salons")
-    .select(`
-      *,
-      salon_categories(category),
-      salon_amenities(amenity)
-    `)
-    .eq("status", "approved")
-    .order("rating", { ascending: false })
-    .limit(8)
+  let salons = []
+  try {
+    const { data } = await supabase
+      .from("salons")
+      .select(`
+        *,
+        salon_categories(category),
+        salon_amenities(amenity)
+      `)
+      .eq("status", "approved")
+      .order("rating", { ascending: false })
+      .limit(8)
+
+    salons = data || []
+  } catch (error) {
+    console.warn("Failed to fetch salons:", error)
+    salons = []
+  }
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <Hero />
       <ServiceCategories />
-      <FeaturedSalons salons={salons || []} />
+      <FeaturedSalons salons={salons} />
       <Footer />
     </div>
   )

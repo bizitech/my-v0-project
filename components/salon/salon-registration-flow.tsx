@@ -7,8 +7,19 @@ import { CheckCircle } from "lucide-react"
 import { BasicInfoStep } from "./registration-steps/basic-info-step"
 import { LocationStep } from "./registration-steps/location-step"
 import { ServicesStep } from "./registration-steps/services-step"
+import { PricingStep } from "./registration-steps/pricing-step"
 import { VerificationStep } from "./registration-steps/verification-step"
 import { SuccessStep } from "./registration-steps/success-step"
+
+export interface SalonService {
+  id: string
+  name: string
+  category: string
+  salonPrice: number
+  homePrice: number
+  duration: number
+  description: string
+}
 
 export interface SalonRegistrationData {
   // Basic Info
@@ -17,6 +28,8 @@ export interface SalonRegistrationData {
   email: string
   phone: string
   description: string
+  password: string
+  confirmPassword: string
 
   // Location
   address: string
@@ -29,6 +42,8 @@ export interface SalonRegistrationData {
   amenities: string[]
   openingHours: Record<string, { open: string; close: string; closed?: boolean }>
 
+  services: SalonService[]
+
   // Verification
   cnic: string
   businessLicense?: string
@@ -39,8 +54,9 @@ const steps = [
   { id: 1, title: "Basic Information", description: "Salon and owner details" },
   { id: 2, title: "Location", description: "Address and contact info" },
   { id: 3, title: "Services", description: "Categories and amenities" },
-  { id: 4, title: "Verification", description: "Documents and images" },
-  { id: 5, title: "Complete", description: "Registration submitted" },
+  { id: 4, title: "Pricing", description: "Service prices and rates" },
+  { id: 5, title: "Verification", description: "Documents and images" },
+  { id: 6, title: "Complete", description: "Registration submitted" },
 ]
 
 export function SalonRegistrationFlow() {
@@ -51,6 +67,8 @@ export function SalonRegistrationFlow() {
     email: "",
     phone: "",
     description: "",
+    password: "",
+    confirmPassword: "",
     address: "",
     city: "",
     area: "",
@@ -66,6 +84,7 @@ export function SalonRegistrationFlow() {
       saturday: { open: "10:00", close: "20:00" },
       sunday: { open: "12:00", close: "17:00" },
     },
+    services: [],
     cnic: "",
     businessLicense: "",
     images: [],
@@ -152,9 +171,12 @@ export function SalonRegistrationFlow() {
             <ServicesStep data={registrationData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />
           )}
           {currentStep === 4 && (
+            <PricingStep data={registrationData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />
+          )}
+          {currentStep === 5 && (
             <VerificationStep data={registrationData} updateData={updateData} onNext={nextStep} onPrev={prevStep} />
           )}
-          {currentStep === 5 && <SuccessStep data={registrationData} />}
+          {currentStep === 6 && <SuccessStep data={registrationData} />}
         </CardContent>
       </Card>
     </div>
