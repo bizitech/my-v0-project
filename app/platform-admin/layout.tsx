@@ -1,25 +1,33 @@
 import type React from "react"
-import { createClient } from "@/lib/supabase/server"
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
+
+export const dynamic = "force-dynamic"
+export const revalidate = 0
 
 export default async function PlatformAdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const supabase = createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
+  if (!isSupabaseConfigured) {
     redirect("/auth/login")
   }
 
-  // TODO: Add proper admin role check
-  // For now, we'll assume authenticated users can access admin
-  // In production, you'd check user roles/permissions here
+  try {
+    const supabase = createClient()
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      redirect("/auth/login")
+    }
+  } catch (error) {
+    console.error("Failed to authenticate platform admin user:", error)
+    redirect("/auth/login")
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

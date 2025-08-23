@@ -1,33 +1,57 @@
-import { createClient } from "@/lib/supabase/server"
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { SalonDashboard } from "@/components/salon/salon-dashboard"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 export default async function SalonDashboardPage() {
-  const supabase = createClient()
-
-  // Check if user is authenticated
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
+  if (!isSupabaseConfigured) {
     redirect("/auth/login")
   }
 
-  // Check if user is a salon owner
-  const { data: salonOwner } = await supabase.from("salon_owners").select("*, salons(*)").eq("id", user.id).single()
+  const supabase = createClient()
+  let user = null
+  let salonOwner = null
+  let salon = null
+  let bookings = []
+  let services = []
+  let staff = []
+  let customers = []
+  let reviews = []
 
-  if (!salonOwner) {
-    redirect("/salon/register")
-  }
+  try {
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser()
+    user = authUser
 
-  const salon = salonOwner.salons
+    if (!user) {
+      redirect("/auth/login")
+    }
 
-  // Fetch salon data
-  const [{ data: bookings }, { data: services }, { data: staff }, { data: customers }, { data: reviews }] =
-    await Promise.all([
+    const { data: salonOwnerData } = await supabase
+      .from("salon_owners")
+      .select("*, salons(*)")
+      .eq("id", user.id)
+      .single()
+    salonOwner = salonOwnerData
+
+    if (!salonOwner) {
+      redirect("/salon/register")
+    }
+
+    salon = salonOwner.salons
+
+    const [
+      { data: bookingsData },
+      { data: servicesData },
+      { data: staffData },
+      { data: customersData },
+      { data: reviewsData },
+    ] = await Promise.all([
       supabase
         .from("bookings")
         .select("*, customers(full_name, phone), services(name), staff(name)")
@@ -43,16 +67,26 @@ export default async function SalonDashboardPage() {
         .order("created_at", { ascending: false }),
     ])
 
+    bookings = bookingsData || []
+    services = servicesData || []
+    staff = staffData || []
+    customers = customersData || []
+    reviews = reviewsData || []
+  } catch (error) {
+    console.error("Failed to fetch salon dashboard data:", error)
+    redirect("/salon/register")
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <SalonDashboard
         salon={salon}
-        bookings={bookings || []}
-        services={services || []}
-        staff={staff || []}
-        customers={customers || []}
-        reviews={reviews || []}
+        bookings={bookings}
+        services={services}
+        staff={staff}
+        customers={customers}
+        reviews={reviews}
       />
       <Footer />
     </div>

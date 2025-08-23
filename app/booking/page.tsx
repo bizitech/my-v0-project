@@ -1,8 +1,11 @@
-import { createClient } from "@/lib/supabase/server"
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/server"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { BookingFlow } from "@/components/booking-flow"
 import { redirect } from "next/navigation"
+
+export const dynamic = "force-dynamic"
+export const revalidate = 0
 
 interface SearchParams {
   service?: string
@@ -14,45 +17,70 @@ export default async function BookingPage({
 }: {
   searchParams: SearchParams
 }) {
-  const supabase = createClient()
-
-  // Check if user is authenticated
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect("/auth/login?redirect=/booking")
+  if (!isSupabaseConfigured) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-foreground mb-4">Service Unavailable</h1>
+          <p className="text-muted-foreground">Booking service is currently unavailable. Please try again later.</p>
+        </div>
+      </div>
+    )
   }
 
-  const { data: salons } = await supabase
-    .from("salons")
-    .select("*")
-    .eq("is_active", true)
-    .eq("is_verified", true)
-    .order("rating", { ascending: false })
-
+  const supabase = createClient()
+  let user = null
+  let salons = []
   let selectedSalon = null
   let services: any[] = []
   let staff: any[] = []
+
+  try {
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser()
+    user = authUser
+
+    if (!user) {
+      redirect("/auth/login?redirect=/booking")
+    }
+
+    const { data: salonsData } = await supabase
+      .from("salons")
+      .select("*")
+      .eq("is_active", true)
+      .eq("is_verified", true)
+      .order("rating", { ascending: false })
+
+    salons = salonsData || []
+  } catch (error) {
+    console.error("Failed to fetch user or salons:", error)
+    redirect("/auth/login?redirect=/booking")
+  }
 
   if (searchParams.salon) {
     selectedSalon = salons?.find((s) => s.id === searchParams.salon) || null
 
     if (selectedSalon) {
-      const [{ data: salonServices }, { data: salonStaff }] = await Promise.all([
-        supabase
-          .from("services")
-          .select("*")
-          .eq("salon_id", selectedSalon.id)
-          .eq("is_active", true)
-          .order("category", { ascending: true })
-          .order("name", { ascending: true }),
-        supabase.from("staff").select("*").eq("salon_id", selectedSalon.id).eq("is_available", true),
-      ])
+      try {
+        const [{ data: salonServices }, { data: salonStaff }] = await Promise.all([
+          supabase
+            .from("services")
+            .select("*")
+            .eq("salon_id", selectedSalon.id)
+            .eq("is_active", true)
+            .order("category", { ascending: true })
+            .order("name", { ascending: true }),
+          supabase.from("staff").select("*").eq("salon_id", selectedSalon.id).eq("is_available", true),
+        ])
 
-      services = salonServices || []
-      staff = salonStaff || []
+        services = salonServices || []
+        staff = salonStaff || []
+      } catch (error) {
+        console.error("Failed to fetch salon services or staff:", error)
+        services = []
+        staff = []
+      }
     }
   }
 

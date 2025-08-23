@@ -1,26 +1,33 @@
 import type React from "react"
-import { createClient } from "@/lib/supabase/server"
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
+
+export const dynamic = "force-dynamic"
+export const revalidate = 0
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const supabase = createClient()
-
-  // Check if user is authenticated
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
+  if (!isSupabaseConfigured) {
     redirect("/auth/login?redirect=/admin")
   }
 
-  // For demo purposes, we'll allow any authenticated user to access admin
-  // In production, you'd check for admin role/permissions here
-  // Example: Check if user has admin role in database
+  try {
+    const supabase = createClient()
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      redirect("/auth/login?redirect=/admin")
+    }
+  } catch (error) {
+    console.error("Failed to authenticate admin user:", error)
+    redirect("/auth/login?redirect=/admin")
+  }
 
   return <>{children}</>
 }
