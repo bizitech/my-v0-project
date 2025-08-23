@@ -5,6 +5,9 @@ import { FeaturedSalons } from "@/components/featured-salons"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 export default async function HomePage() {
   const supabase = createClient()
 

@@ -4,6 +4,9 @@ import { SalonDetails } from "@/components/salon-details"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
 interface SalonPageProps {
   params: {
     id: string
