@@ -1,9 +1,6 @@
 "use client"
 import { useEffect, useState } from "react"
 
-export const dynamic = "force-dynamic"
-export const revalidate = 0
-
 export default function EmailDebug() {
   const [status, setStatus] = useState<any>()
   const [to, setTo] = useState("")

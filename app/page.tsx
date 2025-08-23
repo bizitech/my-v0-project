@@ -5,26 +5,26 @@ import { FeaturedSalons } from "@/components/featured-salons"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 
-export const dynamic = "force-dynamic"
-export const revalidate = 0
+export const revalidate = 60
 
 export default async function HomePage() {
   const supabase = createClient()
 
   let salons = []
   try {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("salons")
-      .select(`
-        *,
-        salon_categories(category),
-        salon_amenities(amenity)
-      `)
+      .select("id,name,city,address,phone,email,created_at,status")
       .eq("status", "approved")
-      .order("rating", { ascending: false })
+      .order("created_at", { ascending: false })
       .limit(8)
 
-    salons = data || []
+    if (error) {
+      console.error("Failed to fetch salons:", error)
+      salons = []
+    } else {
+      salons = data || []
+    }
   } catch (error) {
     console.warn("Failed to fetch salons:", error)
     salons = []
