@@ -7,7 +7,6 @@ export default async function LoginPage({
 }: {
   searchParams: { redirect?: string }
 }) {
-  // If Supabase is not configured, show setup message directly
   if (!isSupabaseConfigured) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -16,15 +15,19 @@ export default async function LoginPage({
     )
   }
 
-  // Check if user is already logged in
-  const supabase = createClient()
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  try {
+    const supabase = createClient()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
 
-  // If user is logged in, redirect to intended page or home
-  if (session) {
-    redirect(searchParams.redirect || "/")
+    // If user is logged in, redirect to intended page or home
+    if (session) {
+      redirect(searchParams.redirect || "/")
+    }
+  } catch (error) {
+    console.error("Supabase session check failed:", error)
+    // Continue to show login form even if session check fails
   }
 
   return (
