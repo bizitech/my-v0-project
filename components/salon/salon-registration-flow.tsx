@@ -60,6 +60,8 @@ const steps = [
 ]
 
 export function SalonRegistrationFlow() {
+  console.log("[v0] Rendering SalonRegistrationFlow")
+
   const [currentStep, setCurrentStep] = useState(1)
   const [registrationData, setRegistrationData] = useState<SalonRegistrationData>({
     salonName: "",
@@ -110,6 +112,10 @@ export function SalonRegistrationFlow() {
 
   return (
     <div className="space-y-8">
+      <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+        <p className="text-blue-800 text-sm">✓ Registration Flow Component Loaded</p>
+      </div>
+
       {/* Progress Header */}
       <Card>
         <CardHeader>
