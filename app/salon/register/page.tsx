@@ -1,21 +1,13 @@
-"use client"
-
 export const dynamic = "force-dynamic"
 export const revalidate = 0
 
 import type React from "react"
-
-import { useEffect } from "react"
 
 function ErrorBoundary({ children }: { children: React.ReactNode }) {
   return <div>{children}</div>
 }
 
 export default function RegisterSalonPage() {
-  useEffect(() => {
-    console.log("[v0] register page mounted")
-  }, [])
-
   return (
     <ErrorBoundary>
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
