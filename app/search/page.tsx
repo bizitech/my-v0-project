@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server"
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/server"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 
@@ -13,25 +13,54 @@ export default async function SearchPage({ searchParams }: Props) {
   const q = (searchParams.q ?? "").trim()
   const city = (searchParams.city ?? "").trim()
 
-  const supabase = createClient()
-
-  let query = supabase.from("salons").select("id,name,city,address,phone,created_at,status").eq("status", "approved")
-
-  if (city) {
-    query = query.ilike("city", `%${city}%`)
+  if (!isSupabaseConfigured) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="p-6 text-yellow-600">
+          <h1 className="text-2xl font-bold mb-4">Search Unavailable</h1>
+          <p>Database is not configured. Please complete the setup to search for salons.</p>
+        </div>
+        <Footer />
+      </div>
+    )
   }
-  if (q) {
-    // Match by salon name or city
-    query = query.or(`name.ilike.%${q}%,city.ilike.%${q}%`)
-  }
 
-  const { data: salons, error } = await query.order("created_at", { ascending: false })
+  let salons = []
+  let error = null
+
+  try {
+    const supabase = createClient()
+
+    let query = supabase.from("salons").select("id,name,city,address,phone,created_at,status").eq("status", "approved")
+
+    if (city) {
+      query = query.ilike("city", `%${city}%`)
+    }
+    if (q) {
+      // Match by salon name or city
+      query = query.or(`name.ilike.%${q}%,city.ilike.%${q}%`)
+    }
+
+    const result = await query.order("created_at", { ascending: false })
+    salons = result.data || []
+    error = result.error
+  } catch (err) {
+    error = err instanceof Error ? err : new Error("Database query failed")
+  }
 
   if (error) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="p-6 text-red-600">Search failed: {error.message}</div>
+        <div className="p-6 text-red-600">
+          <h1 className="text-2xl font-bold mb-4">Search Error</h1>
+          <p>Unable to search salons at this time. Please try again later.</p>
+          <details className="mt-4 text-sm">
+            <summary>Error details</summary>
+            <pre className="mt-2 p-2 bg-gray-100 rounded">{error.message}</pre>
+          </details>
+        </div>
         <Footer />
       </div>
     )
