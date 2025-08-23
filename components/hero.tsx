@@ -1,8 +1,15 @@
+"use client"
+
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, MapPin, Calendar } from "lucide-react"
 
 export function Hero() {
+  const [searchTerm, setSearchTerm] = useState("")
+  const [location, setLocation] = useState("")
+  const [date, setDate] = useState("")
+
   return (
     <section className="relative min-h-[80vh] bg-gradient-to-br from-purple-400 via-pink-400 to-red-400 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-orange-500/20" />
@@ -22,7 +29,12 @@ export function Hero() {
                   <Search className="h-4 w-4" />
                   All treatments and services
                 </label>
-                <Input placeholder="Search for treatments..." className="border-gray-200 focus:border-primary" />
+                <Input
+                  placeholder="Search for treatments..."
+                  className="border-gray-200 focus:border-primary"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
 
               <div className="space-y-2">
@@ -30,7 +42,12 @@ export function Hero() {
                   <MapPin className="h-4 w-4" />
                   Current location
                 </label>
-                <Input placeholder="Enter your city..." className="border-gray-200 focus:border-primary" />
+                <Input
+                  placeholder="Enter your city..."
+                  className="border-gray-200 focus:border-primary"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                />
               </div>
 
               <div className="space-y-2">
@@ -38,7 +55,12 @@ export function Hero() {
                   <Calendar className="h-4 w-4" />
                   Any date
                 </label>
-                <Input type="date" className="border-gray-200 focus:border-primary" />
+                <Input
+                  type="date"
+                  className="border-gray-200 focus:border-primary"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                />
               </div>
 
               <Button size="lg" className="bg-black hover:bg-gray-800 text-white h-12">

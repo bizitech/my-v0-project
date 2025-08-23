@@ -6,17 +6,17 @@
 :root {
   /* Updated color scheme from green to purple-pink inspired by Fresha */
   --background: #ffffff;
-  --foreground: #475569;
+  --foreground: #1e293b;
   --card: #f1f5f9;
-  --card-foreground: #475569;
+  --card-foreground: #1e293b;
   --popover: #ffffff;
-  --popover-foreground: #475569;
+  --popover-foreground: #1e293b;
   --primary: #8b5cf6;
   --primary-foreground: #ffffff;
   --secondary: #ec4899;
   --secondary-foreground: #ffffff;
   --muted: #f1f5f9;
-  --muted-foreground: #475569;
+  --muted-foreground: #64748b;
   --accent: #a855f7;
   --accent-foreground: #ffffff;
   --destructive: #d97706;
@@ -31,7 +31,7 @@
   --chart-5: #f43f5e;
   --radius: 0.5rem;
   --sidebar: #f1f5f9;
-  --sidebar-foreground: #475569;
+  --sidebar-foreground: #1e293b;
   --sidebar-primary: #8b5cf6;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #ec4899;

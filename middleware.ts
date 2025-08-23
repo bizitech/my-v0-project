@@ -1,48 +1,57 @@
-import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs"
+import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
 export async function middleware(request: NextRequest) {
-  const res = NextResponse.next()
+  let supabaseResponse = NextResponse.next({
+    request,
+  })
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn("[v0] Supabase environment variables not found, skipping auth middleware")
-    return res
+    console.log("[v0] Supabase environment variables not available in middleware, skipping auth")
+    return supabaseResponse
   }
+
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll()
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+        supabaseResponse = NextResponse.next({
+          request,
+        })
+        cookiesToSet.forEach(({ name, value, options }) => supabaseResponse.cookies.set(name, value, options))
+      },
+    },
+  })
 
   try {
-    const supabase = createMiddlewareClient({ req: request, res })
-
-    // Refresh session if expired - required for Server Components
     const {
-      data: { session },
-    } = await supabase.auth.getSession()
+      data: { user },
+    } = await supabase.auth.getUser()
 
-    // Protected routes - redirect to login if not authenticated
-    const isAuthRoute = request.nextUrl.pathname.startsWith("/auth/")
-    const isProtectedRoute =
-      request.nextUrl.pathname.startsWith("/booking") ||
-      request.nextUrl.pathname.startsWith("/dashboard") ||
-      request.nextUrl.pathname.startsWith("/admin")
-
-    if (isProtectedRoute && !session) {
-      const redirectUrl = new URL("/auth/login", request.url)
-      redirectUrl.searchParams.set("redirect", request.nextUrl.pathname)
-      return NextResponse.redirect(redirectUrl)
-    }
-
-    // Redirect authenticated users away from auth pages
-    if (isAuthRoute && session && !request.nextUrl.pathname.includes("/auth/callback")) {
-      return NextResponse.redirect(new URL("/", request.url))
+    if (
+      request.nextUrl.pathname !== "/" &&
+      !user &&
+      !request.nextUrl.pathname.startsWith("/auth") &&
+      !request.nextUrl.pathname.startsWith("/salon/register") &&
+      (request.nextUrl.pathname.startsWith("/dashboard") ||
+        request.nextUrl.pathname.startsWith("/admin") ||
+        request.nextUrl.pathname.startsWith("/booking"))
+    ) {
+      const url = request.nextUrl.clone()
+      url.pathname = "/auth/login"
+      return NextResponse.redirect(url)
     }
   } catch (error) {
-    console.error("[v0] Supabase middleware error:", error)
-    return res
+    console.log("[v0] Auth check failed in middleware:", error)
   }
 
-  return res
+  return supabaseResponse
 }
 
 export const config = {

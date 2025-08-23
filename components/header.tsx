@@ -12,16 +12,26 @@ import {
 import { signOut } from "@/lib/actions"
 
 export async function Header() {
-  const supabase = createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  // Get customer data if user is logged in
+  let user = null
   let customer = null
-  if (user) {
-    const { data } = await supabase.from("customers").select("full_name").eq("id", user.id).single()
-    customer = data
+
+  try {
+    const supabase = createClient()
+    if (supabase && supabase.auth && typeof supabase.auth.getUser === "function") {
+      const {
+        data: { user: userData },
+      } = await supabase.auth.getUser()
+      user = userData
+
+      // Get customer data if user is logged in
+      if (user && supabase.from && typeof supabase.from === "function") {
+        const { data } = await supabase.from("customers").select("full_name").eq("id", user.id).single()
+        customer = data
+      }
+    }
+  } catch (error) {
+    console.log("[v0] Header: Error accessing Supabase client:", error)
+    // Continue with user = null, customer = null
   }
 
   return (
