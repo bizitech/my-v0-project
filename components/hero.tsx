@@ -64,7 +64,7 @@ export function Hero() {
           </h1>
 
           <div className="bg-white rounded-2xl p-6 shadow-2xl max-w-4xl mx-auto mb-8">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <form method="GET" action="/search" className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                   <Search className="h-4 w-4" />
@@ -72,6 +72,7 @@ export function Hero() {
                 </label>
                 <Input
                   type="text"
+                  name="q"
                   placeholder="Search for treatments..."
                   className="border-2 border-gray-300 focus:border-blue-500 bg-white text-black"
                   value={searchTerm}
@@ -91,7 +92,9 @@ export function Hero() {
                 </label>
                 <Input
                   type="text"
+                  name="city"
                   placeholder="Enter your city..."
+                  defaultValue="PESHAWAR"
                   className="border-2 border-gray-300 focus:border-blue-500 bg-white text-black"
                   value={location}
                   onChange={handleLocationChange}
@@ -110,6 +113,7 @@ export function Hero() {
                 </label>
                 <Input
                   type="date"
+                  name="date"
                   className="border-2 border-gray-300 focus:border-blue-500 bg-white text-black"
                   value={date}
                   onChange={handleDateChange}
@@ -121,10 +125,10 @@ export function Hero() {
                 />
               </div>
 
-              <Button size="lg" className="bg-black hover:bg-gray-800 text-white h-12">
+              <Button type="submit" size="lg" className="bg-black hover:bg-gray-800 text-white h-12">
                 Search
               </Button>
-            </div>
+            </form>
           </div>
 
           <div className="text-center">
