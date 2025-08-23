@@ -38,8 +38,6 @@
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: #e2e8f0;
   --sidebar-ring: rgba(139, 92, 246, 0.5);
-  --font-geist-sans: "Geist Sans";
-  --font-geist-mono: "Geist Mono";
 }
 
 .dark {
@@ -75,13 +73,12 @@
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: #334155;
   --sidebar-ring: rgba(168, 85, 247, 0.5);
-  --font-geist-sans: "Geist Sans";
-  --font-geist-mono: "Geist Mono";
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono",
+  /* Fixed font variables to use proper CSS variable references */
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
