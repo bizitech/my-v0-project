@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,6 +11,45 @@ export function Hero() {
   const [searchTerm, setSearchTerm] = useState("")
   const [location, setLocation] = useState("")
   const [date, setDate] = useState("")
+
+  const handleSearchClick = () => {
+    console.log("[v0] Search input clicked")
+  }
+
+  const handleSearchFocus = () => {
+    console.log("[v0] Search input focused")
+  }
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("[v0] Search input changed:", e.target.value)
+    setSearchTerm(e.target.value)
+  }
+
+  const handleLocationClick = () => {
+    console.log("[v0] Location input clicked")
+  }
+
+  const handleLocationFocus = () => {
+    console.log("[v0] Location input focused")
+  }
+
+  const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("[v0] Location input changed:", e.target.value)
+    setLocation(e.target.value)
+  }
+
+  const handleDateClick = () => {
+    console.log("[v0] Date input clicked")
+  }
+
+  const handleDateFocus = () => {
+    console.log("[v0] Date input focused")
+  }
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("[v0] Date input changed:", e.target.value)
+    setDate(e.target.value)
+  }
 
   return (
     <section className="relative min-h-[80vh] bg-gradient-to-br from-purple-400 via-pink-400 to-red-400 overflow-hidden">
@@ -27,13 +68,19 @@ export function Hero() {
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                   <Search className="h-4 w-4" />
-                  All treatments and services
+                  Service provider or services
                 </label>
                 <Input
+                  type="text"
                   placeholder="Search for treatments..."
-                  className="border-gray-200 focus:border-primary"
+                  className="border-2 border-gray-300 focus:border-blue-500 bg-white text-black"
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={handleSearchChange}
+                  onClick={handleSearchClick}
+                  onFocus={handleSearchFocus}
+                  autoComplete="off"
+                  spellCheck="false"
+                  style={{ pointerEvents: "auto", zIndex: 10 }}
                 />
               </div>
 
@@ -43,10 +90,16 @@ export function Hero() {
                   Current location
                 </label>
                 <Input
+                  type="text"
                   placeholder="Enter your city..."
-                  className="border-gray-200 focus:border-primary"
+                  className="border-2 border-gray-300 focus:border-blue-500 bg-white text-black"
                   value={location}
-                  onChange={(e) => setLocation(e.target.value)}
+                  onChange={handleLocationChange}
+                  onClick={handleLocationClick}
+                  onFocus={handleLocationFocus}
+                  autoComplete="off"
+                  spellCheck="false"
+                  style={{ pointerEvents: "auto", zIndex: 10 }}
                 />
               </div>
 
@@ -57,9 +110,14 @@ export function Hero() {
                 </label>
                 <Input
                   type="date"
-                  className="border-gray-200 focus:border-primary"
+                  className="border-2 border-gray-300 focus:border-blue-500 bg-white text-black"
                   value={date}
-                  onChange={(e) => setDate(e.target.value)}
+                  onChange={handleDateChange}
+                  onClick={handleDateClick}
+                  onFocus={handleDateFocus}
+                  autoComplete="off"
+                  spellCheck="false"
+                  style={{ pointerEvents: "auto", zIndex: 10 }}
                 />
               </div>
 
