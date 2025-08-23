@@ -1,14 +1,13 @@
 "use client"
-
-import type React from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { Upload, FileText, ImageIcon } from "lucide-react"
 import type { SalonRegistrationData } from "../salon-registration-flow"
-import { registerSalon } from "@/lib/actions"
-import { useState, useRef } from "react"
+import { createSalonAction } from "@/app/salon/register/actions"
+import SubmitButton from "@/app/salon/register/SubmitButton"
+import { useRef } from "react"
 
 interface VerificationStepProps {
   data: SalonRegistrationData
@@ -18,7 +17,6 @@ interface VerificationStepProps {
 }
 
 export function VerificationStep({ data, updateData, onNext, onPrev }: VerificationStepProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const exteriorFileRef = useRef<HTMLInputElement>(null)
   const interiorFileRef = useRef<HTMLInputElement>(null)
 
@@ -43,34 +41,31 @@ export function VerificationStep({ data, updateData, onNext, onPrev }: Verificat
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-
-    try {
-      await registerSalon(data)
-      onNext()
-    } catch (error) {
-      console.error("Registration failed:", error)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
   const isValid = data.salonName && data.ownerName && data.email && data.phone
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form action={createSalonAction} className="space-y-6">
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Business Information</h2>
         <p className="text-gray-600">Add your business details and salon photos (optional)</p>
       </div>
 
       <div className="space-y-6">
+        <input type="hidden" name="salonName" value={data.salonName} />
+        <input type="hidden" name="ownerName" value={data.ownerName} />
+        <input type="hidden" name="email" value={data.email} />
+        <input type="hidden" name="phone" value={data.phone} />
+        <input type="hidden" name="address" value={data.address} />
+        <input type="hidden" name="city" value={data.city} />
+        <input type="hidden" name="area" value={data.area} />
+        <input type="hidden" name="description" value={data.description} />
+        <input type="hidden" name="postalCode" value={data.postalCode} />
+
         <div className="space-y-2">
           <Label htmlFor="businessLicense">Business License (Optional)</Label>
           <Input
             id="businessLicense"
+            name="businessLicense"
             value={data.businessLicense || ""}
             onChange={(e) => updateData({ businessLicense: e.target.value })}
             placeholder="Business registration number"
@@ -155,9 +150,7 @@ export function VerificationStep({ data, updateData, onNext, onPrev }: Verificat
           <Button type="button" variant="outline" onClick={onPrev}>
             Previous
           </Button>
-          <Button type="submit" disabled={!isValid || isSubmitting} className="px-8">
-            {isSubmitting ? "Creating Salon..." : "Create My Salon"}
-          </Button>
+          <SubmitButton />
         </div>
       </div>
     </form>
