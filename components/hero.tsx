@@ -9,7 +9,7 @@ import { Search, MapPin, Calendar } from "lucide-react"
 
 export function Hero() {
   const [searchTerm, setSearchTerm] = useState("")
-  const [location, setLocation] = useState("")
+  const [location, setLocation] = useState("PESHAWAR")
   const [date, setDate] = useState("")
 
   const handleSearchClick = () => {
@@ -94,7 +94,6 @@ export function Hero() {
                   type="text"
                   name="city"
                   placeholder="Enter your city..."
-                  defaultValue="PESHAWAR"
                   className="border-2 border-gray-300 focus:border-blue-500 bg-white text-black"
                   value={location}
                   onChange={handleLocationChange}
