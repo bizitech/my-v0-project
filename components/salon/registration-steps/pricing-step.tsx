@@ -280,9 +280,18 @@ export function PricingStep({ data, updateData, onNext, onPrev }: PricingStepPro
         <Button variant="outline" onClick={onPrev}>
           Previous
         </Button>
-        <Button onClick={onNext} disabled={!isValid}>
-          Continue to Verification
-        </Button>
+        <div className="flex flex-col items-end">
+          {!isValid && (
+            <p className="text-sm text-red-500 mb-2">
+              {data.services.length === 0
+                ? "Please add at least one service to continue"
+                : "Please set prices for all services"}
+            </p>
+          )}
+          <Button onClick={onNext} disabled={!isValid} className={!isValid ? "opacity-50 cursor-not-allowed" : ""}>
+            Continue to Verification
+          </Button>
+        </div>
       </div>
     </div>
   )
