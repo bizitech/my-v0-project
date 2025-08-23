@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import { SalonDetails } from "@/components/salon-details"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
@@ -14,6 +14,10 @@ interface SalonPageProps {
 }
 
 export default async function SalonPage({ params }: SalonPageProps) {
+  if (params.id === "register") {
+    redirect("/salon/register")
+  }
+
   const supabase = createClient()
 
   try {

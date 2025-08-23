@@ -13,6 +13,12 @@ export const isSupabaseConfigured =
  * it.
  */
 export async function createClient() {
+  if (!isSupabaseConfigured) {
+    throw new Error(
+      "Supabase environment variables are not configured. Please check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.",
+    )
+  }
+
   const cookieStore = await cookies()
 
   return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
