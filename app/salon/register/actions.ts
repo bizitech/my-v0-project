@@ -1,7 +1,8 @@
 "use server"
 import { redirect } from "next/navigation"
 import { revalidatePath, revalidateTag } from "next/cache"
-import { createClient } from "@/lib/supabase/server"
+import { getServerSupabase } from "@/lib/supabase/server"
+import { trySendEmail } from "@/lib/email"
 
 export async function createSalonAction(formData: FormData) {
   try {
@@ -23,7 +24,8 @@ export async function createSalonAction(formData: FormData) {
     if (!payload.city) return { error: "City is required" }
     if (!payload.area) return { error: "Area is required" }
 
-    const supabase = createClient()
+    const supabase = await getServerSupabase()
+
     const { data, error } = await supabase
       .from("salons")
       .insert({
@@ -34,7 +36,7 @@ export async function createSalonAction(formData: FormData) {
         address: payload.address,
         city: payload.city,
         area: payload.area,
-        status: "approved", // Show immediately; change to 'pending' if you add review
+        status: "pending", // Changed from approved to pending for admin review
       })
       .select("id")
       .single()
@@ -45,6 +47,12 @@ export async function createSalonAction(formData: FormData) {
     }
 
     console.log("[v0] Created salon with ID:", data.id)
+
+    await trySendEmail({
+      to: payload.email,
+      subject: "We received your salon registration",
+      text: `Thanks! ${payload.name} is under review and you'll hear back from us soon.`,
+    }).catch(() => {})
 
     revalidateTag("salons")
     revalidatePath("/", "page")
